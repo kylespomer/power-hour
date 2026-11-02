@@ -14,8 +14,8 @@ It runs in any modern browser, phone or laptop. You can also "Add to Home Screen
 - **A "DRINK!" alert every minute**: the screen flashes full-screen, a sound plays (air horn, bell or whistle), a voice calls out the drink number, the phone vibrates, and a system notification appears if the tab is in the background.
 - **Music between drinks.** The music gets quieter while the alert plays, then skips to the next song. You can pick where songs start (default 0:30) to skip slow intros.
 - **Music sources**
-  - **Spotify**: plays a playlist, album or artist directly in the browser, shuffled. Needs Spotify Premium.
-  - **YouTube / YouTube Music**: paste any public or unlisted playlist link. No account needed.
+  - **Spotify** (default): plays a playlist, album or artist directly in the browser, shuffled, with no ads. Needs Spotify Premium.
+  - **YouTube / YouTube Music**: paste any public or unlisted playlist link. No account needed. YouTube may play ads, usually right when a new song starts after each drink. YouTube Premium may remove them if you're signed in in the same browser, but that isn't guaranteed inside embedded players. Use Spotify or your own files for an ad-free game.
   - **My files**: pick audio files from the device. Works offline.
   - **None**: just the timer, so you can play music any way you like.
 - Keeps the screen awake during a game. The clock is based on real time, so it can't drift even if the browser slows the tab down.

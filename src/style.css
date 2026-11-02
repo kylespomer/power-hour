@@ -63,6 +63,9 @@ h1 {
 legend { font-weight: 700; padding: 0 6px; }
 
 .banner { padding: 12px 14px; border-radius: 12px; background: #4a1626; border: 1px solid var(--danger); }
+.note { padding: 10px 12px; border-radius: 10px; line-height: 1.45; }
+.note strong { display: block; margin-bottom: 2px; }
+.note.warn { background: #3d2a08; border: 1px solid #8a5a00; color: #ffe3a3; }
 .banner[data-kind='info'] { background: #123824; border-color: var(--ok); }
 
 .segmented { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--bg-2); padding: 4px; border-radius: 12px; }

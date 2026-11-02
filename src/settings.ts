@@ -36,7 +36,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  source: 'youtube',
+  source: 'spotify',
   mode: 'power-hour',
   spotifyLink: '',
   youtubeLink: '',
