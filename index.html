@@ -76,12 +76,18 @@
 
         <fieldset class="card">
           <legend>Game</legend>
+          <div class="segmented three" role="radiogroup" aria-label="Game mode">
+            <label><input type="radio" name="mode" value="power-hour" /><span>Power Hour<small>60 drinks</small></span></label>
+            <label><input type="radio" name="mode" value="centurion" /><span>Centurion<small>100 drinks</small></span></label>
+            <label><input type="radio" name="mode" value="custom" /><span>Custom<small>your rules</small></span></label>
+          </div>
+          <p id="mode-summary" class="muted small"></p>
           <div class="grid2">
-            <label class="field">
+            <label class="field" data-custom-only>
               <span>Drinks</span>
               <input id="rounds" type="number" min="1" max="200" step="1" inputmode="numeric" />
             </label>
-            <label class="field">
+            <label class="field" data-custom-only>
               <span>Seconds between drinks</span>
               <input id="interval" type="number" min="5" max="600" step="1" inputmode="numeric" />
             </label>
@@ -145,7 +151,7 @@
       <!-- DONE -->
       <section id="done" class="screen center" hidden>
         <div class="trophy">🏆</div>
-        <h1>You made it!</h1>
+        <h1 id="done-title">You made it!</h1>
         <p id="done-summary" class="tagline"></p>
         <button id="again" type="button" class="btn primary big">Back to setup</button>
       </section>

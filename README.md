@@ -6,7 +6,11 @@ It runs in any modern browser, phone or laptop. You can also "Add to Home Screen
 
 ## Features
 
-- **60-minute game clock** with a big countdown to the next drink. The number of drinks and the seconds between them can both be changed.
+- **Game modes**
+  - **Power Hour**: 60 drinks, one a minute.
+  - **Centurion**: 100 drinks, one a minute (1 hour 40 minutes).
+  - **Custom**: choose the number of drinks and the seconds between them.
+- **A big countdown** to the next drink, plus drinks taken and time remaining.
 - **A "DRINK!" alert every minute**: the screen flashes full-screen, a sound plays (air horn, bell or whistle), a voice calls out the drink number, the phone vibrates, and a system notification appears if the tab is in the background.
 - **Music between drinks.** The music gets quieter while the alert plays, then skips to the next song. You can pick where songs start (default 0:30) to skip slow intros.
 - **Music sources**

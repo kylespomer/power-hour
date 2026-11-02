@@ -14,7 +14,16 @@ import { SpotifySource, parseSpotifyContextUri } from './music/spotify';
 import * as spotifyAuth from './music/spotify-auth';
 import { type MusicSource, SilentSource, type TrackInfo } from './music/types';
 import { YouTubeSource, parseYouTubePlaylistId } from './music/youtube';
-import { type Settings, type SourceId, clampInt, loadSettings, saveSettings } from './settings';
+import {
+  type GameMode,
+  type ModeId,
+  type Settings,
+  type SourceId,
+  clampInt,
+  loadSettings,
+  resolveMode,
+  saveSettings,
+} from './settings';
 import { acquireWakeLock, releaseWakeLock } from './wakelock';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -34,6 +43,10 @@ const ui = {
   youtubeLink: $<HTMLInputElement>('youtube-link'),
   localFiles: $<HTMLInputElement>('local-files'),
   localCount: $('local-count'),
+  modeRadios: [...document.querySelectorAll<HTMLInputElement>('input[name="mode"]')],
+  modeSummary: $('mode-summary'),
+  customOnly: [...document.querySelectorAll<HTMLElement>('[data-custom-only]')],
+  doneTitle: $('done-title'),
   rounds: $<HTMLInputElement>('rounds'),
   interval: $<HTMLInputElement>('interval'),
   alertSound: $<HTMLSelectElement>('alert-sound'),
@@ -69,6 +82,7 @@ const DUCKED_VOLUME = 0.15;
 
 let settings: Settings = loadSettings();
 let game: PowerHourGame | null = null;
+let mode: GameMode = resolveMode(settings);
 let music: MusicSource = new SilentSource();
 let loop: number | undefined;
 let flashTimer: number | undefined;
@@ -86,6 +100,7 @@ function renderSetup() {
   for (const p of ui.sourcePanels) p.hidden = p.dataset.source !== settings.source;
   ui.spotifyLink.value = settings.spotifyLink;
   ui.youtubeLink.value = settings.youtubeLink;
+  for (const r of ui.modeRadios) r.checked = r.value === settings.mode;
   ui.rounds.value = String(settings.rounds);
   ui.interval.value = String(settings.intervalSec);
   ui.alertSound.value = settings.alertSound;
@@ -95,6 +110,15 @@ function renderSetup() {
   ui.spotifyClientId.value = spotifyAuth.getClientId();
   ui.redirectUri.textContent = spotifyAuth.redirectUri();
   renderSpotifyStatus();
+  renderMode();
+}
+
+function renderMode() {
+  const m = resolveMode(settings);
+  for (const el of ui.customOnly) el.hidden = settings.mode !== 'custom';
+  const perDrink = m.intervalSec === 60 ? 'every minute' : `every ${m.intervalSec} seconds`;
+  ui.modeSummary.textContent = `${m.rounds} drinks, one ${perDrink} — ${formatClock(m.rounds * m.intervalSec * 1000)} total.`;
+  ui.start.textContent = `Start ${m.name}`;
 }
 
 function renderSpotifyStatus() {
@@ -105,8 +129,10 @@ function renderSpotifyStatus() {
 
 function readSetup(): Settings {
   const checked = ui.sourceRadios.find((r) => r.checked);
+  const checkedMode = ui.modeRadios.find((r) => r.checked);
   settings = {
     source: (checked?.value as SourceId) ?? settings.source,
+    mode: (checkedMode?.value as ModeId) ?? settings.mode,
     spotifyLink: ui.spotifyLink.value.trim(),
     youtubeLink: ui.youtubeLink.value.trim(),
     rounds: clampInt(ui.rounds.value, 1, 200, 60),
@@ -123,6 +149,7 @@ function readSetup(): Settings {
 ui.setup.addEventListener('change', () => {
   readSetup();
   for (const p of ui.sourcePanels) p.hidden = p.dataset.source !== settings.source;
+  renderMode();
 });
 
 ui.localFiles.addEventListener('change', () => {
@@ -208,7 +235,7 @@ ui.start.addEventListener('click', async () => {
     return;
   } finally {
     ui.start.disabled = false;
-    ui.start.textContent = 'Start Power Hour';
+    renderMode();
   }
 
   music.dispose();
@@ -225,14 +252,15 @@ function show(screen: 'setup' | 'game' | 'done') {
 }
 
 function startGame(s: Settings) {
-  game = new PowerHourGame({ rounds: s.rounds, intervalMs: s.intervalSec * 1000 });
+  mode = resolveMode(s);
+  game = new PowerHourGame({ rounds: mode.rounds, intervalMs: mode.intervalSec * 1000 });
   game.start();
-  ui.drinkTotal.textContent = String(s.rounds);
+  ui.drinkTotal.textContent = String(mode.rounds);
   ui.pause.textContent = 'Pause';
   renderTrack(null);
   show('game');
   void acquireWakeLock();
-  if (s.voice) speak("Let's go! Power hour starts now.");
+  if (s.voice) speak(`Let's go! ${mode.name === 'Custom game' ? 'The game' : mode.name} starts now.`);
   clearInterval(loop);
   loop = window.setInterval(tick, 200);
   tick();
@@ -249,7 +277,7 @@ function tick() {
   ui.remaining.textContent = formatClock(game.totalMs - snapshot.elapsedMs);
   ui.totalBar.style.width = `${snapshot.totalProgress * 100}%`;
   document.title =
-    snapshot.status === 'running' ? `${formatClock(snapshot.msUntilNextDrink)} · Power Hour` : 'Power Hour';
+    snapshot.status === 'running' ? `${formatClock(snapshot.msUntilNextDrink)} · ${mode.name}` : 'Power Hour';
 
   // If the tab was throttled and several drinks became due at once, only alert once.
   if (newDrinks.length) void drinkTime(newDrinks[newDrinks.length - 1], justFinished);
@@ -282,6 +310,7 @@ function finishGame() {
   clearInterval(loop);
   releaseWakeLock();
   const g = game!;
+  ui.doneTitle.textContent = mode.name === 'Centurion' ? 'Centurion conquered!' : 'You made it!';
   ui.doneSummary.textContent = `${g.config.rounds} drinks in ${formatClock(g.totalMs)}. Legendary.`;
   setTimeout(() => show('done'), 3000);
 }
@@ -316,7 +345,7 @@ ui.pause.addEventListener('click', async () => {
 ui.skip.addEventListener('click', () => void music.next().catch((e) => showToast(String(e.message ?? e))));
 
 ui.stop.addEventListener('click', () => {
-  if (game?.update().snapshot.status === 'running' && !confirm('End this Power Hour?')) return;
+  if (game?.update().snapshot.status === 'running' && !confirm(`End this ${mode.name}?`)) return;
   endGame();
 });
 

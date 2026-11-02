@@ -2,10 +2,31 @@ import type { AlertSound } from './alert';
 
 export type SourceId = 'spotify' | 'youtube' | 'local' | 'none';
 
+export type ModeId = 'power-hour' | 'centurion' | 'custom';
+
+export interface GameMode {
+  name: string;
+  rounds: number;
+  intervalSec: number;
+}
+
+export const PRESETS: Record<Exclude<ModeId, 'custom'>, GameMode> = {
+  'power-hour': { name: 'Power Hour', rounds: 60, intervalSec: 60 },
+  centurion: { name: 'Centurion', rounds: 100, intervalSec: 60 },
+};
+
+/** The game that will actually be played: a preset, or the custom numbers. */
+export function resolveMode(s: Pick<Settings, 'mode' | 'rounds' | 'intervalSec'>): GameMode {
+  if (s.mode === 'custom') return { name: 'Custom game', rounds: s.rounds, intervalSec: s.intervalSec };
+  return PRESETS[s.mode] ?? PRESETS['power-hour'];
+}
+
 export interface Settings {
   source: SourceId;
+  mode: ModeId;
   spotifyLink: string;
   youtubeLink: string;
+  /** rounds and intervalSec are only used when mode is 'custom'. */
   rounds: number;
   intervalSec: number;
   alertSound: AlertSound;
@@ -16,6 +37,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   source: 'youtube',
+  mode: 'power-hour',
   spotifyLink: '',
   youtubeLink: '',
   rounds: 60,
