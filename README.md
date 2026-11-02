@@ -32,6 +32,16 @@ npm run build      # production build in dist/
 
 `dist/` is a static site that can be deployed anywhere (GitHub Pages, Netlify, Vercel, Cloudflare Pages). It must be served over **HTTPS** (or from localhost) for Spotify login, notifications and screen wake lock to work.
 
+## Deploying for the family (GitHub Pages)
+
+Every push to `main` builds the app and publishes it to GitHub Pages using `.github/workflows/deploy.yml`.
+
+1. Turn on Pages: in the repo, go to **Settings → Pages** and set **Source** to **GitHub Actions**.
+2. Optional: add the Spotify Client ID under **Settings → Secrets and variables → Actions → Variables** as `SPOTIFY_CLIENT_ID`, so nobody has to paste it into the app.
+3. Re-run the workflow under **Actions → Deploy to GitHub Pages → Run workflow**, or push any change.
+4. The app is live at **https://kylespomer.github.io/power-hour/**. Share that link. On phones, use Share → *Add to Home Screen* so it opens like an app.
+5. In the Spotify developer dashboard, add `https://kylespomer.github.io/power-hour/` as a Redirect URI (with the trailing slash), and add each family member who will host under **User Management**.
+
 ## Spotify setup (one time)
 
 Spotify only allows playback in a third-party app for **Premium** accounts. The app logs in with the PKCE flow, so it needs no server or secret.

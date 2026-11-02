@@ -87,7 +87,7 @@ export function notify(title: string, body: string): void {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
   if (document.visibilityState === 'visible') return;
   try {
-    new Notification(title, { body, tag: 'power-hour', icon: '/icon.svg' });
+    new Notification(title, { body, tag: 'power-hour', icon: `${import.meta.env.BASE_URL}icon.svg` });
   } catch {
     // Some mobile browsers only allow notifications from a service worker.
   }
