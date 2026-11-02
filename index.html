@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#14101f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <title>Power Hour</title>
+  </head>
+  <body>
+    <main id="app">
+      <!-- SETUP -->
+      <section id="setup" class="screen">
+        <header class="brand">
+          <h1>Power&nbsp;Hour</h1>
+          <p class="tagline">A drink every minute. A new song every drink.</p>
+        </header>
+
+        <div id="banner" class="banner" hidden></div>
+
+        <fieldset class="card">
+          <legend>Music</legend>
+          <div class="segmented" role="radiogroup" aria-label="Music source">
+            <label><input type="radio" name="source" value="spotify" /><span>Spotify</span></label>
+            <label><input type="radio" name="source" value="youtube" /><span>YouTube</span></label>
+            <label><input type="radio" name="source" value="local" /><span>My files</span></label>
+            <label><input type="radio" name="source" value="none" /><span>None</span></label>
+          </div>
+
+          <div class="source-panel" data-source="spotify">
+            <label class="field">
+              <span>Playlist, album or artist link</span>
+              <input id="spotify-link" type="url" placeholder="https://open.spotify.com/playlist/…" autocomplete="off" />
+            </label>
+            <div class="row">
+              <span id="spotify-status" class="muted"></span>
+              <button id="spotify-login" type="button" class="btn small">Log in to Spotify</button>
+            </div>
+            <details>
+              <summary>Spotify setup (one time)</summary>
+              <ol class="help">
+                <li>Spotify Premium is required for playback in the browser.</li>
+                <li>Create an app at <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com/dashboard</a> and tick “Web Playback SDK”.</li>
+                <li>Add this Redirect URI: <code id="redirect-uri"></code></li>
+                <li>Paste the app’s Client ID here:</li>
+              </ol>
+              <label class="field">
+                <span>Client ID</span>
+                <input id="spotify-client-id" type="text" autocomplete="off" spellcheck="false" />
+              </label>
+            </details>
+          </div>
+
+          <div class="source-panel" data-source="youtube">
+            <label class="field">
+              <span>YouTube or YouTube Music playlist link</span>
+              <input id="youtube-link" type="url" placeholder="https://www.youtube.com/playlist?list=…" autocomplete="off" />
+            </label>
+            <p class="muted small">No account needed. The playlist must be public or unlisted.</p>
+          </div>
+
+          <div class="source-panel" data-source="local">
+            <label class="field">
+              <span>Pick songs from this device</span>
+              <input id="local-files" type="file" accept="audio/*" multiple />
+            </label>
+            <p id="local-count" class="muted small">Works offline. Files are shuffled.</p>
+          </div>
+
+          <div class="source-panel" data-source="none">
+            <p class="muted small">Just the timer and alerts — play music however you like.</p>
+          </div>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>Game</legend>
+          <div class="grid2">
+            <label class="field">
+              <span>Drinks</span>
+              <input id="rounds" type="number" min="1" max="200" step="1" inputmode="numeric" />
+            </label>
+            <label class="field">
+              <span>Seconds between drinks</span>
+              <input id="interval" type="number" min="5" max="600" step="1" inputmode="numeric" />
+            </label>
+            <label class="field">
+              <span>Alert sound</span>
+              <select id="alert-sound">
+                <option value="horn">Air horn</option>
+                <option value="bell">Bell</option>
+                <option value="whistle">Whistle</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Start songs at (sec)</span>
+              <input id="offset" type="number" min="0" max="240" step="5" inputmode="numeric" />
+            </label>
+          </div>
+          <label class="check"><input id="change-song" type="checkbox" /> New song every drink</label>
+          <label class="check"><input id="voice" type="checkbox" /> Announce drinks out loud</label>
+          <button id="test-alert" type="button" class="btn ghost small">Test alert</button>
+        </fieldset>
+
+        <button id="start" type="button" class="btn primary big">Start Power Hour</button>
+        <p class="muted small center">Please drink responsibly. Swap in water or a soft drink any time.</p>
+      </section>
+
+      <!-- GAME -->
+      <section id="game" class="screen" hidden>
+        <div class="dial">
+          <svg viewBox="0 0 200 200" aria-hidden="true">
+            <circle class="track" cx="100" cy="100" r="90" />
+            <circle id="ring" class="ring" cx="100" cy="100" r="90" />
+          </svg>
+          <div class="dial-center">
+            <div id="countdown" class="countdown">1:00</div>
+            <div class="muted">until next drink</div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div><span id="drink-count" class="stat">0</span><span class="muted"> / <span id="drink-total">60</span> drinks</span></div>
+          <div class="muted"><span id="elapsed">0:00</span> elapsed · <span id="remaining">60:00</span> left</div>
+        </div>
+        <div class="bar"><div id="total-bar"></div></div>
+
+        <div class="now-playing" id="now-playing" hidden>
+          <img id="np-art" alt="" hidden />
+          <div>
+            <div id="np-title" class="np-title"></div>
+            <div id="np-artist" class="muted small"></div>
+          </div>
+        </div>
+        <div id="video-mount" class="video" hidden></div>
+
+        <div class="controls">
+          <button id="pause" type="button" class="btn">Pause</button>
+          <button id="skip" type="button" class="btn">Skip song</button>
+          <button id="stop" type="button" class="btn ghost">End game</button>
+        </div>
+      </section>
+
+      <!-- DONE -->
+      <section id="done" class="screen center" hidden>
+        <div class="trophy">🏆</div>
+        <h1>You made it!</h1>
+        <p id="done-summary" class="tagline"></p>
+        <button id="again" type="button" class="btn primary big">Back to setup</button>
+      </section>
+    </main>
+
+    <div id="flash" class="flash" hidden>
+      <div class="flash-text">DRINK!</div>
+      <div id="flash-sub" class="flash-sub"></div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

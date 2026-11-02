@@ -1,0 +1,10 @@
+{
+  "name": "Power Hour",
+  "short_name": "Power Hour",
+  "description": "A drink every minute, a new song every drink.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#14101f",
+  "theme_color": "#14101f",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
